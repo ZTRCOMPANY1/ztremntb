@@ -4,41 +4,47 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz de Filmes</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
+<body class="app-body">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-grid"></div>
 
-  <header class="topbar">
+  <header class="topbar glass">
     <div class="brand">
       <div class="brand-logo">🎬</div>
       <div>
         <h1>Quiz de Filmes</h1>
-        <p>Teste seus conhecimentos e suba no ranking global</p>
+        <p>Escolha um card, responda e suba no ranking global</p>
       </div>
     </div>
 
     <nav class="topbar-actions">
       <button id="navHomeBtn" class="ghost-btn">Início</button>
       <button id="navRankingBtn" class="ghost-btn">Ranking</button>
-      <button id="navAdminBtn" class="ghost-btn hidden">Admin</button>
+      <a id="adminLinkBtn" href="admin.html" class="ghost-btn hidden link-btn">Admin</a>
       <button id="logoutBtn" class="danger-btn hidden">Sair</button>
     </nav>
   </header>
 
   <main class="container">
     <section id="authSection" class="panel active">
+      <div class="hero-banner glass">
+        <div class="hero-copy">
+          <span class="pill">Sem npm • Sem JSX • GitHub Pages</span>
+          <h2>Entre e teste seus conhecimentos em filmes e séries</h2>
+          <p>Comece por Supernatural e dispute posição no placar global.</p>
+        </div>
+      </div>
+
       <div class="auth-grid">
-        <div class="auth-box">
+        <div class="auth-box glass">
           <h2>Entrar</h2>
           <p>Use seu nome de usuário e senha.</p>
-
           <form id="loginForm" class="form-grid">
             <input type="text" id="loginUsername" placeholder="Nome de usuário" required />
             <input type="password" id="loginPassword" placeholder="Senha" required />
@@ -46,10 +52,9 @@
           </form>
         </div>
 
-        <div class="auth-box">
+        <div class="auth-box glass">
           <h2>Cadastrar</h2>
-          <p>Crie sua conta para entrar no ranking global.</p>
-
+          <p>Crie uma conta para entrar no ranking global.</p>
           <form id="registerForm" class="form-grid">
             <input type="text" id="registerUsername" placeholder="Nome de usuário" required />
             <input type="password" id="registerPassword" placeholder="Senha" minlength="6" required />
@@ -60,41 +65,36 @@
     </section>
 
     <section id="homeSection" class="panel hidden">
-      <div class="hero-card">
-        <div>
-          <span class="badge">Escolha um filme</span>
-          <h2>Selecione um card e comece o quiz</h2>
-          <p>Você poderá escolher quantas perguntas quer responder antes de iniciar.</p>
+      <div class="hero-banner glass hero-banner-home">
+        <div class="hero-copy">
+          <span class="pill">Escolha um quiz</span>
+          <h2>Selecione um filme ou série e comece agora</h2>
+          <p>Escolha quantas perguntas quer responder e veja sua pontuação no final.</p>
         </div>
       </div>
 
-      <div class="controls-card">
+      <div class="controls-card glass">
         <label for="questionCount">Quantidade de perguntas</label>
         <input type="number" id="questionCount" min="1" max="50" value="10" />
-        <small>Você pode escolher 10, 20 ou qualquer quantidade até o total disponível no filme.</small>
+        <small>Você pode escolher 10, 20, 30, 40 ou até o limite de perguntas disponíveis.</small>
       </div>
 
       <div id="movieGrid" class="movie-grid"></div>
     </section>
 
     <section id="quizSection" class="panel hidden">
-      <div class="quiz-header">
+      <div class="quiz-header glass">
         <div>
-          <span id="quizMovieName" class="badge">Filme</span>
+          <span id="quizMovieName" class="pill">Filme</span>
           <h2 id="quizTitle">Quiz</h2>
           <p id="quizProgressText">Pergunta 1 de 10</p>
         </div>
-
-        <div class="score-chip">
-          Pontuação: <strong id="liveScore">0</strong>
-        </div>
+        <div class="score-chip">Pontuação: <strong id="liveScore">0</strong></div>
       </div>
 
-      <div class="question-card">
+      <div class="question-card glass">
         <h3 id="questionText">Pergunta</h3>
-
         <div id="answersContainer" class="answers-grid"></div>
-
         <div id="feedbackBox" class="feedback-box hidden"></div>
 
         <div class="quiz-actions">
@@ -105,8 +105,8 @@
     </section>
 
     <section id="resultSection" class="panel hidden">
-      <div class="result-card">
-        <span class="badge">Resultado final</span>
+      <div class="result-card glass">
+        <span class="pill">Resultado final</span>
         <h2 id="resultTitle">Sua pontuação</h2>
         <p id="resultScoreText">Você fez 0 pontos</p>
         <p id="resultMessage">Foi bom ou não</p>
@@ -121,12 +121,12 @@
     <section id="rankingSection" class="panel hidden">
       <div class="section-head">
         <div>
-          <span class="badge">Ranking global</span>
+          <span class="pill">Ranking global</span>
           <h2>Top jogadores</h2>
         </div>
       </div>
 
-      <div class="ranking-card">
+      <div class="ranking-card glass">
         <table>
           <thead>
             <tr>
@@ -138,55 +138,6 @@
           </thead>
           <tbody id="rankingTableBody"></tbody>
         </table>
-      </div>
-    </section>
-
-    <section id="adminSection" class="panel hidden">
-      <div class="section-head">
-        <div>
-          <span class="badge">Painel administrativo</span>
-          <h2>Adicionar card de filme e perguntas</h2>
-          <p>Somente usuários marcados como admin no Firestore verão esta área.</p>
-        </div>
-      </div>
-
-      <div class="admin-grid">
-        <div class="admin-card">
-          <h3>Cadastrar filme</h3>
-
-          <form id="movieForm" class="form-grid">
-            <input type="text" id="movieTitle" placeholder="Nome do filme / série" required />
-            <input type="text" id="movieImage" placeholder="URL da capa do card" required />
-            <textarea id="movieDescription" placeholder="Descrição curta" rows="4" required></textarea>
-            <button type="submit" class="primary-btn">Salvar filme</button>
-          </form>
-        </div>
-
-        <div class="admin-card">
-          <h3>Adicionar pergunta</h3>
-
-          <form id="questionForm" class="form-grid">
-            <select id="questionMovieSelect" required>
-              <option value="">Selecione um filme</option>
-            </select>
-
-            <input type="text" id="questionInput" placeholder="Pergunta" required />
-            <input type="text" id="option1" placeholder="Opção 1" required />
-            <input type="text" id="option2" placeholder="Opção 2" required />
-            <input type="text" id="option3" placeholder="Opção 3" required />
-            <input type="text" id="option4" placeholder="Opção 4" required />
-
-            <select id="correctAnswer" required>
-              <option value="">Qual opção é a correta?</option>
-              <option value="0">Opção 1</option>
-              <option value="1">Opção 2</option>
-              <option value="2">Opção 3</option>
-              <option value="3">Opção 4</option>
-            </select>
-
-            <button type="submit" class="success-btn">Salvar pergunta</button>
-          </form>
-        </div>
       </div>
     </section>
   </main>

@@ -16,8 +16,7 @@ import {
   query,
   orderBy,
   limit,
-  serverTimestamp,
-  updateDoc
+  serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const authSection = document.getElementById('authSection');
@@ -25,11 +24,10 @@ const homeSection = document.getElementById('homeSection');
 const quizSection = document.getElementById('quizSection');
 const resultSection = document.getElementById('resultSection');
 const rankingSection = document.getElementById('rankingSection');
-const adminSection = document.getElementById('adminSection');
 
 const navHomeBtn = document.getElementById('navHomeBtn');
 const navRankingBtn = document.getElementById('navRankingBtn');
-const navAdminBtn = document.getElementById('navAdminBtn');
+const adminLinkBtn = document.getElementById('adminLinkBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
 const loginForm = document.getElementById('loginForm');
@@ -54,10 +52,6 @@ const resultMessage = document.getElementById('resultMessage');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const seeRankingBtn = document.getElementById('seeRankingBtn');
 
-const movieForm = document.getElementById('movieForm');
-const questionForm = document.getElementById('questionForm');
-const questionMovieSelect = document.getElementById('questionMovieSelect');
-
 const toast = document.getElementById('toast');
 
 let currentUser = null;
@@ -76,7 +70,7 @@ function showToast(message) {
 
   setTimeout(() => {
     toast.classList.add('hidden');
-  }, 2800);
+  }, 3000);
 }
 
 function pseudoEmailFromUsername(username) {
@@ -87,8 +81,12 @@ function normalizeUsername(username) {
   return username.trim().replace(/\s+/g, ' ');
 }
 
+function usernameKey(username) {
+  return normalizeUsername(username).toLowerCase();
+}
+
 function hideAllPanels() {
-  [authSection, homeSection, quizSection, resultSection, rankingSection, adminSection].forEach((section) => {
+  [authSection, homeSection, quizSection, resultSection, rankingSection].forEach((section) => {
     section.classList.remove('active');
     section.classList.add('hidden');
   });
@@ -103,11 +101,11 @@ function openPanel(panel) {
 function getPerformanceMessage(points, total) {
   const percent = total > 0 ? (points / total) * 100 : 0;
 
-  if (percent === 100) return 'Perfeito! Você mandou muito bem!';
-  if (percent >= 80) return 'Foi muito bom! Você conhece muito desse filme.';
-  if (percent >= 60) return 'Foi bom! Você foi bem no quiz.';
-  if (percent >= 40) return 'Dá para melhorar. Continue tentando!';
-  return 'Não foi tão bem dessa vez, mas na próxima você consegue.';
+  if (percent === 100) return 'Perfeito! Você zerou o quiz e foi incrível.';
+  if (percent >= 80) return 'Foi muito bom! Você conhece muito bem esse universo.';
+  if (percent >= 60) return 'Foi bom! Você mandou bem.';
+  if (percent >= 40) return 'Dá para melhorar. Tente mais uma vez.';
+  return 'Dessa vez não foi tão bem, mas você pode tentar de novo.';
 }
 
 function shuffleArray(array) {
@@ -121,58 +119,106 @@ function shuffleArray(array) {
   return arr;
 }
 
-async function seedInitialData() {
-  const snapshot = await getDocs(collection(db, 'movies'));
-  if (!snapshot.empty) return;
+async function ensureUsernameAvailable(username) {
+  const ref = doc(db, 'usernames', usernameKey(username));
+  const snap = await getDoc(ref);
+  return !snap.exists();
+}
+
+async function reserveUsername(username, userId) {
+  const ref = doc(db, 'usernames', usernameKey(username));
+  await setDoc(ref, {
+    username: normalizeUsername(username),
+    userId,
+    createdAt: serverTimestamp()
+  });
+}
+
+async function ensureSeeded() {
+  const settingsRef = doc(db, 'appConfig', 'seed');
+  const settingsSnap = await getDoc(settingsRef);
+
+  if (settingsSnap.exists() && settingsSnap.data().supernaturalSeeded === true) {
+    return;
+  }
 
   const movieRef = await addDoc(collection(db, 'movies'), {
     title: 'Supernatural',
-    image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80',
-    description: 'Perguntas sobre a série Supernatural para testar se você conhece Sam, Dean e todo o universo da série.',
+    image: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=80',
+    description: '50 perguntas sobre Sam, Dean, Castiel, demônios, anjos, caçadas e todo o universo de Supernatural.',
     createdAt: serverTimestamp()
   });
 
-  const initialQuestions = [
-    {
-      question: 'Qual é o nome do carro clássico dirigido por Dean Winchester?',
-      options: ['Mustang 1967', 'Impala 1967', 'Camaro 1969', 'Charger 1970'],
-      correctIndex: 1
-    },
-    {
-      question: 'Qual é o nome do anjo que se torna um grande aliado dos irmãos?',
-      options: ['Gabriel', 'Lucifer', 'Castiel', 'Metatron'],
-      correctIndex: 2
-    },
-    {
-      question: 'Como se chama o pai de Sam e Dean?',
-      options: ['Bobby Singer', 'John Winchester', 'Samuel Colt', 'Azazel'],
-      correctIndex: 1
-    },
-    {
-      question: 'Qual dos irmãos é o mais velho?',
-      options: ['Sam', 'Dean', 'Adam', 'Nenhum'],
-      correctIndex: 1
-    },
-    {
-      question: 'Qual personagem é conhecido como Rei do Inferno?',
-      options: ['Crowley', 'Ruby', 'Balthazar', 'Chuck'],
-      correctIndex: 0
-    }
+  const questions = [
+    ['Qual é o nome do carro clássico de Dean Winchester?', ['Mustang 1967', 'Impala 1967', 'Camaro 1969', 'Chevelle 1970'], 1],
+    ['Quem é o irmão mais velho?', ['Sam', 'Dean', 'Adam', 'John'], 1],
+    ['Qual é o nome do pai de Sam e Dean?', ['Bobby Singer', 'Samuel Winchester', 'John Winchester', 'Azazel'], 2],
+    ['Qual anjo vira grande aliado dos irmãos?', ['Uriel', 'Gabriel', 'Castiel', 'Metatron'], 2],
+    ['Qual personagem é conhecido como Rei do Inferno?', ['Crowley', 'Lucifer', 'Meg', 'Balthazar'], 0],
+    ['Como se chama o amigo caçador e figura paterna dos irmãos?', ['Rufus', 'Bobby Singer', 'Garth', 'Ash'], 1],
+    ['Qual demônio matou Mary Winchester?', ['Abaddon', 'Azazel', 'Lilith', 'Alastair'], 1],
+    ['Qual é o primeiro nome da mãe dos irmãos?', ['Jo', 'Ellen', 'Mary', 'Jessica'], 2],
+    ['Qual dos irmãos estudou em Stanford?', ['Dean', 'Sam', 'Adam', 'John'], 1],
+    ['Qual é o sobrenome dos protagonistas?', ['Singer', 'Mills', 'Winchester', 'Campbell'], 2],
+    ['Como se chama o profeta que também é Deus na série?', ['Chuck', 'Kevin', 'Donatello', 'Jack'], 0],
+    ['Quem é a mãe de demônios?', ['Ruby', 'Meg', 'Lilith', 'Eve'], 3],
+    ['Como se chama o nephilim filho de Lucifer?', ['Jack', 'Adam', 'Michael', 'Kevin'], 0],
+    ['Quem é a namorada de Sam no início da série?', ['Jo', 'Jess', 'Ruby', 'Sarah'], 1],
+    ['Qual cavaleiro do inferno aparece muito na série?', ['Abaddon', 'Cain', 'War', 'Famine'], 1],
+    ['Quem marca Dean com a Marca de Caim?', ['Crowley', 'Cain', 'Abaddon', 'Lucifer'], 1],
+    ['Como se chama a irmã de Deus?', ['Darkness', 'Rowena', 'Naomi', 'Billie'], 0],
+    ['Qual é o nome verdadeiro da Darkness?', ['Anna', 'Amara', 'Aurora', 'Annie'], 1],
+    ['Qual personagem é mãe de Crowley?', ['Billie', 'Mary', 'Jo', 'Rowena'], 3],
+    ['Quem é a bruxa poderosa de cabelo ruivo?', ['Ruby', 'Meg', 'Rowena', 'Charlie'], 2],
+    ['Como se chama o filho meio-irmão de Sam e Dean?', ['Jack', 'Adam', 'Ben', 'Kevin'], 1],
+    ['Qual personagem usa muito a frase “Saving people, hunting things”?', ['Dean', 'Sam', 'Bobby', 'John'], 0],
+    ['Quem matou Lilith?', ['Dean', 'Castiel', 'Sam', 'Bobby'], 2],
+    ['Ao matar Lilith, o que Sam acaba liberando?', ['Michael', 'The Darkness', 'Lucifer', 'Leviatãs'], 2],
+    ['Qual anjo tenta constantemente controlar Castiel?', ['Naomi', 'Anna', 'Jo', 'Billie'], 0],
+    ['Como se chama a hacker genial amiga dos irmãos?', ['Claire', 'Charlie', 'Jody', 'Donna'], 1],
+    ['Qual personagem é xerife e aliada dos Winchesters?', ['Jody Mills', 'Bela Talbot', 'Meg', 'Jo Harvelle'], 0],
+    ['Quem é o arcanjo irmão de Lucifer que possui Dean em outra linha?', ['Raphael', 'Michael', 'Gabriel', 'Uriel'], 1],
+    ['Qual personagem fingiu ser o Trickster antes de revelar ser arcanjo?', ['Michael', 'Lucifer', 'Gabriel', 'Metatron'], 2],
+    ['Como se chama o bunker legado aos Homens de Letras?', ['Men of Archives', 'Men of Letters Bunker', 'Hunter House', 'Legacy Vault'], 1],
+    ['Quem encontra a tábua demoníaca?', ['Kevin Tran', 'Chuck', 'Donatello', 'Bobby'], 0],
+    ['Qual profeta traduz as tábuas?', ['Gabriel', 'Kevin Tran', 'Samandriel', 'Garth'], 1],
+    ['Qual criatura invade o purgatório com Castiel?', ['Crowley', 'Dick Roman', 'Lucifer', 'Azazel'], 1],
+    ['Quem lidera os leviatãs?', ['Cain', 'Dick Roman', 'Crowley', 'Metatron'], 1],
+    ['O que Bobby se torna após morrer?', ['Anjo', 'Fantasma', 'Demônio', 'Ceifador'], 1],
+    ['Quem é o ceifador que depois vira Morte?', ['Billie', 'Jo', 'Naomi', 'Anna'], 0],
+    ['Qual personagem vira recipiente de Lucifer por um tempo?', ['Sam', 'Dean', 'Cas', 'Nick'], 3],
+    ['Como se chama o humano preferido para Lucifer fora Sam?', ['Nick', 'Cole', 'Ben', 'Kevin'], 0],
+    ['Quem é a filha de Jimmy Novak?', ['Claire', 'Krissy', 'Kaia', 'Patience'], 0],
+    ['Jimmy Novak é o receptáculo de qual personagem?', ['Lucifer', 'Michael', 'Castiel', 'Gabriel'], 2],
+    ['Qual personagem costuma dizer “Hello, boys”?', ['Meg', 'Rowena', 'Billie', 'Jody'], 1],
+    ['Quem é o vampiro amigo de Benny?', ['Dean', 'Sam', 'Bobby', 'Garth'], 0],
+    ['Quem é o lobisomem/caçador excêntrico aliado dos irmãos?', ['Cole', 'Garth', 'Rufus', 'Ash'], 1],
+    ['Quem treinou Dean e Sam quando jovens junto ao pai?', ['Rufus', 'John', 'Bela', 'Claire'], 1],
+    ['Qual personagem feminina rouba objetos sobrenaturais valiosos?', ['Jo', 'Mary', 'Bela Talbot', 'Ruby'], 2],
+    ['Quem é a demônio que teve relação próxima com Sam?', ['Meg', 'Ruby', 'Lilith', 'Abaddon'], 1],
+    ['Qual é o nome do anjo adolescente resgatado por Dean e Sam?', ['Samandriel', 'Metatron', 'Uriel', 'Joshua'], 0],
+    ['Quem escreve vários livros sobre a vida dos Winchester?', ['Chuck', 'Kevin', 'Bobby', 'Garth'], 0],
+    ['Como se chama a organização britânica que cruza com os irmãos?', ['British Hunters', 'Men of Britain', 'British Men of Letters', 'Order of Cain'], 2],
+    ['No fim de tudo, qual é a base central dos irmãos?', ['A estrada', 'O bunker', 'A casa de Bobby', 'O céu'], 1]
   ];
 
-  for (const item of initialQuestions) {
+  for (const item of questions) {
     await addDoc(collection(db, 'movies', movieRef.id, 'questions'), {
-      question: item.question,
-      options: item.options,
-      correctIndex: item.correctIndex,
+      question: item[0],
+      options: item[1],
+      correctIndex: item[2],
       createdAt: serverTimestamp()
     });
   }
+
+  await setDoc(settingsRef, {
+    supernaturalSeeded: true,
+    updatedAt: serverTimestamp()
+  });
 }
 
 async function loadMovies() {
   movieGrid.innerHTML = '<p>Carregando filmes...</p>';
-  questionMovieSelect.innerHTML = '<option value="">Selecione um filme</option>';
 
   const snapshot = await getDocs(collection(db, 'movies'));
   movies = snapshot.docs.map((docItem) => ({
@@ -196,29 +242,19 @@ async function loadMovies() {
       <div class="movie-content">
         <h3>${movie.title}</h3>
         <p>${movie.description}</p>
-        <button class="primary-btn" data-movie-id="${movie.id}">Começar quiz</button>
+        <button class="primary-btn">Começar quiz</button>
       </div>
     `;
 
     card.querySelector('button').addEventListener('click', () => startQuiz(movie.id));
     movieGrid.appendChild(card);
-
-    const option = document.createElement('option');
-    option.value = movie.id;
-    option.textContent = movie.title;
-    questionMovieSelect.appendChild(option);
   });
 }
 
 async function loadRanking() {
   rankingTableBody.innerHTML = '<tr><td colspan="4">Carregando ranking...</td></tr>';
 
-  const rankingQuery = query(
-    collection(db, 'ranking'),
-    orderBy('bestScore', 'desc'),
-    limit(50)
-  );
-
+  const rankingQuery = query(collection(db, 'ranking'), orderBy('bestScore', 'desc'), limit(50));
   const snapshot = await getDocs(rankingQuery);
 
   if (snapshot.empty) {
@@ -230,20 +266,19 @@ async function loadRanking() {
 
   snapshot.docs.forEach((docItem, index) => {
     const data = docItem.data();
-    const tr = document.createElement('tr');
 
     let dateText = '-';
     if (data.updatedAt && data.updatedAt.toDate) {
       dateText = data.updatedAt.toDate().toLocaleString('pt-BR');
     }
 
+    const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${index + 1}</td>
       <td>${data.username}</td>
       <td>${data.bestScore}</td>
       <td>${dateText}</td>
     `;
-
     rankingTableBody.appendChild(tr);
   });
 }
@@ -266,7 +301,7 @@ async function startQuiz(movieId) {
   }));
 
   if (!questions.length) {
-    showToast('Esse filme ainda não tem perguntas cadastradas.');
+    showToast('Esse filme ainda não tem perguntas.');
     return;
   }
 
@@ -347,7 +382,11 @@ nextQuestionBtn.addEventListener('click', () => {
 });
 
 finishQuizBtn.addEventListener('click', async () => {
-  await saveScore();
+  await setDoc(doc(db, 'ranking', currentUser.uid), {
+    username: currentUsername,
+    bestScore: score,
+    updatedAt: serverTimestamp()
+  }, { merge: true });
 
   const totalPoints = currentQuiz.length * 10;
   resultTitle.textContent = `${currentMovie.title} concluído!`;
@@ -357,37 +396,6 @@ finishQuizBtn.addEventListener('click', async () => {
   openPanel(resultSection);
   await loadRanking();
 });
-
-async function saveScore() {
-  if (!currentUser) return;
-
-  const rankingRef = doc(db, 'ranking', currentUser.uid);
-  const rankingSnap = await getDoc(rankingRef);
-
-  if (!rankingSnap.exists()) {
-    await setDoc(rankingRef, {
-      username: currentUsername,
-      bestScore: score,
-      updatedAt: serverTimestamp()
-    });
-    return;
-  }
-
-  const currentBest = rankingSnap.data().bestScore || 0;
-
-  if (score > currentBest) {
-    await updateDoc(rankingRef, {
-      username: currentUsername,
-      bestScore: score,
-      updatedAt: serverTimestamp()
-    });
-  } else {
-    await updateDoc(rankingRef, {
-      username: currentUsername,
-      updatedAt: serverTimestamp()
-    });
-  }
-}
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -411,15 +419,30 @@ registerForm.addEventListener('submit', async (event) => {
   const username = normalizeUsername(document.getElementById('registerUsername').value);
   const password = document.getElementById('registerPassword').value;
 
+  if (username.length < 3) {
+    showToast('O nome de usuário precisa ter pelo menos 3 caracteres.');
+    return;
+  }
+
   try {
+    const available = await ensureUsernameAvailable(username);
+
+    if (!available) {
+      showToast('Esse nome de usuário já existe.');
+      return;
+    }
+
     const credential = await createUserWithEmailAndPassword(
       auth,
       pseudoEmailFromUsername(username),
       password
     );
 
+    await reserveUsername(username, credential.user.uid);
+
     await setDoc(doc(db, 'users', credential.user.uid), {
       username,
+      usernameKey: usernameKey(username),
       isAdmin: false,
       createdAt: serverTimestamp()
     });
@@ -433,7 +456,7 @@ registerForm.addEventListener('submit', async (event) => {
     showToast('Cadastro realizado com sucesso.');
     registerForm.reset();
   } catch (error) {
-    showToast('Erro no cadastro. Talvez esse usuário já exista ou a senha seja fraca.');
+    showToast('Erro no cadastro. Talvez a senha seja fraca ou houve conflito no cadastro.');
     console.error(error);
   }
 });
@@ -454,11 +477,6 @@ navRankingBtn.addEventListener('click', async () => {
   openPanel(rankingSection);
 });
 
-navAdminBtn.addEventListener('click', () => {
-  if (!currentUser || !currentIsAdmin) return;
-  openPanel(adminSection);
-});
-
 playAgainBtn.addEventListener('click', () => {
   openPanel(homeSection);
 });
@@ -468,77 +486,14 @@ seeRankingBtn.addEventListener('click', async () => {
   openPanel(rankingSection);
 });
 
-movieForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  if (!currentIsAdmin) {
-    showToast('Acesso negado.');
-    return;
-  }
-
-  const title = document.getElementById('movieTitle').value.trim();
-  const image = document.getElementById('movieImage').value.trim();
-  const description = document.getElementById('movieDescription').value.trim();
-
-  try {
-    await addDoc(collection(db, 'movies'), {
-      title,
-      image,
-      description,
-      createdAt: serverTimestamp()
-    });
-
-    movieForm.reset();
-    showToast('Filme cadastrado com sucesso.');
-    await loadMovies();
-  } catch (error) {
-    showToast('Erro ao cadastrar filme.');
-    console.error(error);
-  }
-});
-
-questionForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-
-  if (!currentIsAdmin) {
-    showToast('Acesso negado.');
-    return;
-  }
-
-  const movieId = questionMovieSelect.value;
-  const question = document.getElementById('questionInput').value.trim();
-  const options = [
-    document.getElementById('option1').value.trim(),
-    document.getElementById('option2').value.trim(),
-    document.getElementById('option3').value.trim(),
-    document.getElementById('option4').value.trim()
-  ];
-  const correctIndex = Number(document.getElementById('correctAnswer').value);
-
-  try {
-    await addDoc(collection(db, 'movies', movieId, 'questions'), {
-      question,
-      options,
-      correctIndex,
-      createdAt: serverTimestamp()
-    });
-
-    questionForm.reset();
-    showToast('Pergunta cadastrada com sucesso.');
-  } catch (error) {
-    showToast('Erro ao cadastrar pergunta.');
-    console.error(error);
-  }
-});
-
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
 
   if (!user) {
     currentUsername = '';
     currentIsAdmin = false;
-    navAdminBtn.classList.add('hidden');
     logoutBtn.classList.add('hidden');
+    adminLinkBtn.classList.add('hidden');
     openPanel(authSection);
     return;
   }
@@ -554,14 +509,14 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   if (currentIsAdmin) {
-    navAdminBtn.classList.remove('hidden');
+    adminLinkBtn.classList.remove('hidden');
   } else {
-    navAdminBtn.classList.add('hidden');
+    adminLinkBtn.classList.add('hidden');
   }
 
   logoutBtn.classList.remove('hidden');
 
-  await seedInitialData();
+  await ensureSeeded();
   await loadMovies();
   await loadRanking();
   openPanel(homeSection);
