@@ -3,12 +3,12 @@ import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-aut
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
 
 const firebaseConfig = {
-  apiKey: 'SUA_API_KEY',
-  authDomain: 'SEU-PROJETO.firebaseapp.com',
-  projectId: 'SEU-PROJETO',
-  storageBucket: 'SEU-PROJETO.appspot.com',
-  messagingSenderId: 'SEU_SENDER_ID',
-  appId: 'SEU_APP_ID'
+  apiKey: 'AIzaSyCnaqucwCYfeNYRNZWTjxoybYDc5R5-2lI',
+  authDomain: 'quiz-filme-6cbf4.firebaseapp.com',
+  projectId: 'quiz-filme-6cbf4',
+  storageBucket: 'quiz-filme-6cbf4.firebasestorage.app',
+  messagingSenderId: '247174519652',
+  appId: '1:247174519652:web:4981a91be7cb21826db871'
 };
 
 const app = initializeApp(firebaseConfig);
