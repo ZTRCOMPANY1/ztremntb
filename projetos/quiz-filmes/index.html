@@ -1,12 +1,74 @@
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quiz de Filmes</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+    <section id="rankingSection" class="panel hidden">
+      <div class="section-head">
+        <div>
+          <span class="badge">Ranking global</span>
+          <h2>Top jogadores</h2>
+        </div>
+      </div>
+      <div class="ranking-card">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Usuário</th>
+              <th>Pontos</th>
+              <th>Última atualização</th>
+            </tr>
+          </thead>
+          <tbody id="rankingTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="adminSection" class="panel hidden">
+      <div class="section-head">
+        <div>
+          <span class="badge">Painel administrativo</span>
+          <h2>Adicionar card de filme e perguntas</h2>
+          <p>Somente usuários marcados como admin no Firestore verão esta área.</p>
+        </div>
+      </div>
+
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h3>Cadastrar filme</h3>
+          <form id="movieForm" class="form-grid">
+            <input type="text" id="movieTitle" placeholder="Nome do filme / série" required />
+            <input type="text" id="movieImage" placeholder="URL da capa do card" required />
+            <textarea id="movieDescription" placeholder="Descrição curta" rows="4" required></textarea>
+            <button type="submit" class="primary-btn">Salvar filme</button>
+          </form>
+        </div>
+
+        <div class="admin-card">
+          <h3>Adicionar pergunta</h3>
+          <form id="questionForm" class="form-grid">
+            <select id="questionMovieSelect" required>
+              <option value="">Selecione um filme</option>
+            </select>
+            <input type="text" id="questionInput" placeholder="Pergunta" required />
+            <input type="text" id="option1" placeholder="Opção 1" required />
+            <input type="text" id="option2" placeholder="Opção 2" required />
+            <input type="text" id="option3" placeholder="Opção 3" required />
+            <input type="text" id="option4" placeholder="Opção 4" required />
+            <select id="correctAnswer" required>
+              <option value="">Qual opção é a correta?</option>
+              <option value="0">Opção 1</option>
+              <option value="1">Opção 2</option>
+              <option value="2">Opção 3</option>
+              <option value="3">Opção 4</option>
+            </select>
+            <button type="submit" class="success-btn">Salvar pergunta</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
 </html>
