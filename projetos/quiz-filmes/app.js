@@ -128,8 +128,7 @@ async function seedInitialData() {
   const movieRef = await addDoc(collection(db, 'movies'), {
     title: 'Supernatural',
     image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=80',
-    description:
-      'Perguntas sobre a série Supernatural para testar se você conhece Sam, Dean e todo o universo da série.',
+    description: 'Perguntas sobre a série Supernatural para testar se você conhece Sam, Dean e todo o universo da série.',
     createdAt: serverTimestamp()
   });
 

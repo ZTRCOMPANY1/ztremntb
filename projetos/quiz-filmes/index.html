@@ -1,4 +1,123 @@
 <!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz de Filmes</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">🎬</div>
+      <div>
+        <h1>Quiz de Filmes</h1>
+        <p>Teste seus conhecimentos e suba no ranking global</p>
+      </div>
+    </div>
+
+    <nav class="topbar-actions">
+      <button id="navHomeBtn" class="ghost-btn">Início</button>
+      <button id="navRankingBtn" class="ghost-btn">Ranking</button>
+      <button id="navAdminBtn" class="ghost-btn hidden">Admin</button>
+      <button id="logoutBtn" class="danger-btn hidden">Sair</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section id="authSection" class="panel active">
+      <div class="auth-grid">
+        <div class="auth-box">
+          <h2>Entrar</h2>
+          <p>Use seu nome de usuário e senha.</p>
+
+          <form id="loginForm" class="form-grid">
+            <input type="text" id="loginUsername" placeholder="Nome de usuário" required />
+            <input type="password" id="loginPassword" placeholder="Senha" required />
+            <button type="submit" class="primary-btn">Entrar</button>
+          </form>
+        </div>
+
+        <div class="auth-box">
+          <h2>Cadastrar</h2>
+          <p>Crie sua conta para entrar no ranking global.</p>
+
+          <form id="registerForm" class="form-grid">
+            <input type="text" id="registerUsername" placeholder="Nome de usuário" required />
+            <input type="password" id="registerPassword" placeholder="Senha" minlength="6" required />
+            <button type="submit" class="primary-btn">Cadastrar</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="homeSection" class="panel hidden">
+      <div class="hero-card">
+        <div>
+          <span class="badge">Escolha um filme</span>
+          <h2>Selecione um card e comece o quiz</h2>
+          <p>Você poderá escolher quantas perguntas quer responder antes de iniciar.</p>
+        </div>
+      </div>
+
+      <div class="controls-card">
+        <label for="questionCount">Quantidade de perguntas</label>
+        <input type="number" id="questionCount" min="1" max="50" value="10" />
+        <small>Você pode escolher 10, 20 ou qualquer quantidade até o total disponível no filme.</small>
+      </div>
+
+      <div id="movieGrid" class="movie-grid"></div>
+    </section>
+
+    <section id="quizSection" class="panel hidden">
+      <div class="quiz-header">
+        <div>
+          <span id="quizMovieName" class="badge">Filme</span>
+          <h2 id="quizTitle">Quiz</h2>
+          <p id="quizProgressText">Pergunta 1 de 10</p>
+        </div>
+
+        <div class="score-chip">
+          Pontuação: <strong id="liveScore">0</strong>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <h3 id="questionText">Pergunta</h3>
+
+        <div id="answersContainer" class="answers-grid"></div>
+
+        <div id="feedbackBox" class="feedback-box hidden"></div>
+
+        <div class="quiz-actions">
+          <button id="nextQuestionBtn" class="primary-btn hidden">Próxima</button>
+          <button id="finishQuizBtn" class="success-btn hidden">Finalizar</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultSection" class="panel hidden">
+      <div class="result-card">
+        <span class="badge">Resultado final</span>
+        <h2 id="resultTitle">Sua pontuação</h2>
+        <p id="resultScoreText">Você fez 0 pontos</p>
+        <p id="resultMessage">Foi bom ou não</p>
+
+        <div class="result-actions">
+          <button id="playAgainBtn" class="primary-btn">Jogar de novo</button>
+          <button id="seeRankingBtn" class="ghost-btn">Ver ranking</button>
+        </div>
+      </div>
+    </section>
+
     <section id="rankingSection" class="panel hidden">
       <div class="section-head">
         <div>
@@ -6,6 +125,7 @@
           <h2>Top jogadores</h2>
         </div>
       </div>
+
       <div class="ranking-card">
         <table>
           <thead>
@@ -33,6 +153,7 @@
       <div class="admin-grid">
         <div class="admin-card">
           <h3>Cadastrar filme</h3>
+
           <form id="movieForm" class="form-grid">
             <input type="text" id="movieTitle" placeholder="Nome do filme / série" required />
             <input type="text" id="movieImage" placeholder="URL da capa do card" required />
@@ -43,15 +164,18 @@
 
         <div class="admin-card">
           <h3>Adicionar pergunta</h3>
+
           <form id="questionForm" class="form-grid">
             <select id="questionMovieSelect" required>
               <option value="">Selecione um filme</option>
             </select>
+
             <input type="text" id="questionInput" placeholder="Pergunta" required />
             <input type="text" id="option1" placeholder="Opção 1" required />
             <input type="text" id="option2" placeholder="Opção 2" required />
             <input type="text" id="option3" placeholder="Opção 3" required />
             <input type="text" id="option4" placeholder="Opção 4" required />
+
             <select id="correctAnswer" required>
               <option value="">Qual opção é a correta?</option>
               <option value="0">Opção 1</option>
@@ -59,6 +183,7 @@
               <option value="2">Opção 3</option>
               <option value="3">Opção 4</option>
             </select>
+
             <button type="submit" class="success-btn">Salvar pergunta</button>
           </form>
         </div>
